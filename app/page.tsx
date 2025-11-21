@@ -1,65 +1,346 @@
-import Image from "next/image";
+'use client';
+
+import { useState, useRef, useEffect } from 'react';
+import dynamic from 'next/dynamic';
+
+const Spline = dynamic(() => import('@splinetool/react-spline'), {
+  ssr: false,
+  loading: () => (
+    <div className="w-full h-[400px] flex items-center justify-center bg-[#F5F5F4] rounded-xl text-[#78716C]">
+      Loading 3D Viewer...
+    </div>
+  ),
+});
 
 export default function Home() {
+  const [url, setUrl] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState(false);
+  const [fileName, setFileName] = useState('');
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [processedBlob, setProcessedBlob] = useState<Blob | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Cleanup preview URL on unmount or change
+  useEffect(() => {
+    return () => {
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+    };
+  }, [previewUrl]);
+
+  const processBuffer = (buffer: ArrayBuffer) => {
+    const modified = new Uint8Array(buffer);
+    let modifiedCount = 0;
+
+    // 1. Remove Logo Flag (msgpack boolean)
+    // Search for "logo" string followed by boolean true
+    const logoPattern = new TextEncoder().encode('logo');
+    for (let i = 0; i < modified.length - 10; i++) {
+      let match = true;
+      for (let j = 0; j < logoPattern.length; j++) {
+        if (modified[i + j] !== logoPattern[j]) {
+          match = false;
+          break;
+        }
+      }
+      
+      if (match) {
+        // Check if it's a msgpack string key (preceded by string marker)
+        // And followed by true (0xc3) or similar
+        // We'll just look for the boolean flag nearby
+        for (let k = 0; k < 10; k++) {
+          if (modified[i + logoPattern.length + k] === 0xc3) { // true
+            modified[i + logoPattern.length + k] = 0xc2; // false
+            modifiedCount++;
+          }
+        }
+      }
+    }
+
+    // 2. Replace Watermark Images
+    const watermarkPattern = new TextEncoder().encode('SplineWatermark');
+    const pngSignature = new Uint8Array([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]);
+    const pngEnd = new Uint8Array([0x49, 0x45, 0x4E, 0x44, 0xAE, 0x42, 0x60, 0x82]);
+    
+    // Minimal 1x1 transparent PNG
+    const transparentPng = new Uint8Array([
+      0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A,
+      0x00, 0x00, 0x00, 0x0D, 0x49, 0x48, 0x44, 0x52,
+      0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01,
+      0x08, 0x06, 0x00, 0x00, 0x00, 0x1F, 0x15, 0xC4, 0x89,
+      0x00, 0x00, 0x00, 0x0A, 0x49, 0x44, 0x41, 0x54,
+      0x78, 0x9C, 0x63, 0x00, 0x01, 0x00, 0x00, 0x05, 0x00, 0x01,
+      0x0D, 0x0A, 0x2D, 0xB4,
+      0x00, 0x00, 0x00, 0x00, 0x49, 0x45, 0x4E, 0x44,
+      0xAE, 0x42, 0x60, 0x82
+    ]);
+
+    for (let i = 0; i < modified.length - watermarkPattern.length; i++) {
+      let match = true;
+      for (let j = 0; j < watermarkPattern.length; j++) {
+        if (modified[i + j] !== watermarkPattern[j]) {
+          match = false;
+          break;
+        }
+      }
+
+      if (match) {
+        // Found watermark object, look for PNG data
+        let pngStart = -1;
+        for (let k = i; k < Math.min(i + 500, modified.length); k++) {
+          let sigMatch = true;
+          for (let p = 0; p < pngSignature.length; p++) {
+            if (modified[k + p] !== pngSignature[p]) {
+              sigMatch = false;
+              break;
+            }
+          }
+          if (sigMatch) {
+            pngStart = k;
+            break;
+          }
+        }
+
+        if (pngStart !== -1) {
+          // Find end of PNG
+          let pngEndPos = -1;
+          for (let k = pngStart; k < modified.length - pngEnd.length; k++) {
+            let endMatch = true;
+            for (let p = 0; p < pngEnd.length; p++) {
+              if (modified[k + p] !== pngEnd[p]) {
+                endMatch = false;
+                break;
+              }
+            }
+            if (endMatch) {
+              pngEndPos = k + pngEnd.length;
+              break;
+            }
+          }
+
+          if (pngEndPos !== -1) {
+            // Replace with transparent PNG
+            for (let k = 0; k < transparentPng.length; k++) {
+              modified[pngStart + k] = transparentPng[k];
+            }
+            // Fill rest with zeros
+            for (let k = pngStart + transparentPng.length; k < pngEndPos; k++) {
+              modified[k] = 0;
+            }
+            modifiedCount++;
+          }
+        }
+      }
+    }
+
+    return modified;
+  };
+
+  const handleProcess = async () => {
+    if (!url && !fileName) {
+      setError('Please enter a URL or upload a file');
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+    setSuccess(false);
+    setPreviewUrl(null);
+    setProcessedBlob(null);
+
+    // Allow UI to update before processing
+    setTimeout(async () => {
+      try {
+        let buffer: ArrayBuffer;
+
+        if (fileName && fileInputRef.current?.files?.[0]) {
+          // Handle file upload
+          buffer = await fileInputRef.current.files[0].arrayBuffer();
+        } else {
+          // Handle URL
+          const response = await fetch(url);
+          if (!response.ok) throw new Error('Failed to fetch file');
+          buffer = await response.arrayBuffer();
+        }
+
+        const modified = processBuffer(buffer);
+
+        // Create blob for preview and download
+        const blob = new Blob([modified], { type: 'application/octet-stream' });
+        const newPreviewUrl = URL.createObjectURL(blob);
+        
+        setProcessedBlob(blob);
+        setPreviewUrl(newPreviewUrl);
+        setSuccess(true);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'An error occurred');
+      } finally {
+        setLoading(false);
+      }
+    }, 50);
+  };
+
+  const downloadFile = () => {
+    if (!processedBlob) return;
+
+    let downloadName = 'scene-clean.splinecode';
+    if (fileName) {
+      downloadName = fileName.replace('.splinecode', '-clean.splinecode');
+    } else if (url) {
+      const urlParts = url.split('/');
+      const lastPart = urlParts[urlParts.length - 1];
+      if (lastPart.endsWith('.splinecode')) {
+        downloadName = lastPart.replace('.splinecode', '-clean.splinecode');
+      }
+    }
+
+    const downloadUrl = URL.createObjectURL(processedBlob);
+    const a = document.createElement('a');
+    a.href = downloadUrl;
+    a.download = downloadName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(downloadUrl);
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setFileName(file.name);
+      setUrl(''); // Clear URL if file is selected
+    }
+  };
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
+    <main className="min-h-screen flex flex-col items-center justify-center p-4 bg-[#FDFBF7]">
+      <div className="w-full max-w-2xl">
+        <div className="text-center mb-12">
+          <h1 className="text-4xl font-bold text-[#1C1917] mb-4 tracking-tight">
+            FetchSub
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+          <p className="text-[#57534E] text-lg">
+            Remove the Spline logo and watermark from your 3D scenes instantly.
+            <br />
+            Free, private, and runs entirely in your browser.
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+
+        <div className="bg-white rounded-2xl shadow-sm border border-[#E7E5E4] p-8">
+          <div className="space-y-6">
+            {/* URL Input */}
+            <div>
+              <label className="block text-sm font-medium text-[#1C1917] mb-2">
+                Spline Scene URL
+              </label>
+              <input
+                type="text"
+                value={url}
+                onChange={(e) => {
+                  setUrl(e.target.value);
+                  setFileName('');
+                  if (fileInputRef.current) fileInputRef.current.value = '';
+                }}
+                placeholder="https://prod.spline.design/.../scene.splinecode"
+                className="w-full px-4 py-3 rounded-lg bg-[#F5F5F4] border border-[#E7E5E4] focus:outline-none focus:ring-2 focus:ring-[#1C1917] focus:border-transparent transition-all"
+              />
+            </div>
+
+            <div className="relative flex items-center justify-center">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-[#E7E5E4]"></div>
+              </div>
+              <span className="relative bg-white px-4 text-sm text-[#78716C]">OR</span>
+            </div>
+
+            {/* File Upload */}
+            <div 
+              onClick={() => fileInputRef.current?.click()}
+              className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all ${
+                fileName 
+                  ? 'border-[#1C1917] bg-[#F5F5F4]' 
+                  : 'border-[#E7E5E4] hover:border-[#1C1917] hover:bg-[#F5F5F4]'
+              }`}
+            >
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileChange}
+                accept=".splinecode"
+                className="hidden"
+              />
+              <div className="space-y-2">
+                <svg className="mx-auto h-10 w-10 text-[#78716C]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                </svg>
+                {fileName ? (
+                  <p className="text-[#1C1917] font-medium">{fileName}</p>
+                ) : (
+                  <p className="text-[#78716C]">Click to upload .splinecode file</p>
+                )}
+              </div>
+            </div>
+
+            {/* Action Button */}
+            <button
+              onClick={handleProcess}
+              disabled={loading || (!url && !fileName)}
+              className={`w-full py-4 rounded-lg font-medium text-white transition-all ${
+                loading || (!url && !fileName)
+                  ? 'bg-[#78716C] cursor-not-allowed'
+                  : 'bg-[#1C1917] hover:opacity-90 shadow-lg hover:shadow-xl'
+              }`}
+            >
+              {loading ? (
+                <span className="flex items-center justify-center gap-2">
+                  <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Processing...
+                </span>
+              ) : (
+                'Remove Watermark'
+              )}
+            </button>
+
+            {/* Status Messages & Preview */}
+            {error && (
+              <div className="p-4 rounded-lg bg-red-50 text-red-600 text-sm text-center">
+                {error}
+              </div>
+            )}
+            
+            {success && previewUrl && (
+              <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <div className="p-4 rounded-lg bg-green-50 text-green-600 text-sm text-center">
+                  Successfully processed! Preview your clean scene below.
+                </div>
+
+                <div className="w-full h-[400px] rounded-xl overflow-hidden border border-[#E7E5E4] shadow-inner bg-[#F5F5F4]">
+                  <Spline scene={previewUrl} />
+                </div>
+
+                <button
+                  onClick={downloadFile}
+                  className="w-full py-4 rounded-lg font-medium text-[#1C1917] bg-white border-2 border-[#1C1917] hover:bg-[#F5F5F4] transition-all shadow-sm"
+                >
+                  Download Clean File
+                </button>
+              </div>
+            )}
+          </div>
         </div>
-      </main>
-    </div>
+
+        <div className="mt-8 text-center text-sm text-[#78716C] space-y-4">
+          <p>Files are processed locally in your browser. No data is sent to any server.</p>
+          
+          <div>
+            <a href="/terms" className="underline hover:text-[#1C1917]">Terms of Service</a>
+          </div>
+        </div>
+      </div>
+    </main>
   );
 }
