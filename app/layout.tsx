@@ -20,12 +20,23 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "FetchSub - Free Spline Watermark Remover",
-  description: "Remove Spline logo and watermarks from your 3D scenes instantly. Free, private, and runs entirely in your browser. No signup required.",
-  keywords: ["spline", "watermark remover", "3d", "webgl", "spline tool", "cleaner", "logo remover"],
+  title: "Spline Watermark Remover - Free & Online | FetchSub",
+  description: "The best free tool to remove Spline logo and watermarks from .splinecode files. Works instantly in your browser. No signup, no upload, 100% private.",
+  keywords: [
+    "spline watermark remover",
+    "remove spline logo",
+    "spline 3d watermark",
+    "splinecode cleaner",
+    "how to remove spline watermark",
+    "spline logo remover free",
+    "clean spline scene",
+    "spline 3d remove logo",
+    "fetchsub",
+    "spline design watermark"
+  ],
   authors: [{ name: "FetchSub" }],
   openGraph: {
-    title: "FetchSub - Free Spline Watermark Remover",
+    title: "Spline Watermark Remover - Free & Online",
     description: "Remove Spline logo and watermarks from your 3D scenes instantly. Free, private, and runs entirely in your browser.",
     type: "website",
     locale: "en_US",
@@ -33,7 +44,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "FetchSub - Free Spline Watermark Remover",
+    title: "Spline Watermark Remover - Free & Online",
     description: "Remove Spline logo and watermarks from your 3D scenes instantly.",
   },
   icons: {
