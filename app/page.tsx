@@ -23,6 +23,7 @@ export default function Home() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Cleanup preview URL on unmount or change
+  // Added cleanup for memory management
   useEffect(() => {
     return () => {
       if (previewUrl) URL.revokeObjectURL(previewUrl);
@@ -159,7 +160,12 @@ export default function Home() {
           buffer = await fileInputRef.current.files[0].arrayBuffer();
         } else {
           // Handle URL
-          const response = await fetch(url);
+          let fetchUrl = url;
+          if (fetchUrl.startsWith('http://')) {
+            fetchUrl = fetchUrl.replace('http://', 'https://');
+          }
+          
+          const response = await fetch(fetchUrl);
           if (!response.ok) throw new Error('Failed to fetch file');
           buffer = await response.arrayBuffer();
         }
@@ -193,6 +199,15 @@ export default function Home() {
       if (lastPart.endsWith('.splinecode')) {
         downloadName = lastPart.replace('.splinecode', '-clean.splinecode');
       }
+    }
+
+    // Track download event in Google Analytics
+    if (typeof window !== 'undefined' && (window as any).gtag) {
+      (window as any).gtag('event', 'file_download', {
+        event_category: 'Engagement',
+        event_label: 'Spline File Download',
+        value: 1,
+      });
     }
 
     const downloadUrl = URL.createObjectURL(processedBlob);
@@ -339,6 +354,46 @@ export default function Home() {
           <div>
             <a href="/terms" className="underline hover:text-[#1C1917]">Terms of Service</a>
           </div>
+        </div>
+
+        {/* SEO Content Section */}
+        <div className="mt-24 max-w-3xl mx-auto text-left space-y-12 pb-12">
+          <section>
+            <h2 className="text-2xl font-bold text-[#1C1917] mb-4">How to Remove Spline Watermark for Free?</h2>
+            <p className="text-[#57534E] leading-relaxed">
+              FetchSub is the easiest way to remove the Spline logo from your 3D scenes. 
+              Simply upload your <code>.splinecode</code> file or paste the URL, and our tool will instantly process the file to hide the watermark. 
+              It works by modifying the internal flags of the file without damaging your 3D model or animations.
+            </p>
+          </section>
+
+          <section>
+            <h2 className="text-2xl font-bold text-[#1C1917] mb-4">Why use FetchSub?</h2>
+            <ul className="list-disc pl-5 space-y-2 text-[#57534E]">
+              <li><strong>100% Free:</strong> No subscription or credit card needed.</li>
+              <li><strong>Private & Secure:</strong> All processing happens in your browser. Your files never leave your device.</li>
+              <li><strong>Instant Results:</strong> No waiting for server uploads or downloads.</li>
+              <li><strong>Live Preview:</strong> Verify the watermark is gone before you download.</li>
+            </ul>
+          </section>
+
+          <section>
+            <h2 className="text-2xl font-bold text-[#1C1917] mb-4">Frequently Asked Questions</h2>
+            <div className="space-y-6">
+              <div>
+                <h3 className="font-medium text-[#1C1917] mb-2">Is it legal to remove the Spline logo?</h3>
+                <p className="text-[#57534E] text-sm">
+                  This tool is intended for educational and personal use. If you are using Spline for commercial projects, we strongly recommend supporting the developers by purchasing a Spline Super subscription, which officially allows you to remove the logo.
+                </p>
+              </div>
+              <div>
+                <h3 className="font-medium text-[#1C1917] mb-2">Does this work with all Spline files?</h3>
+                <p className="text-[#57534E] text-sm">
+                  Yes, FetchSub works with standard <code>.splinecode</code> files exported from the Spline design tool. It handles both binary data modification and texture replacement to ensure the logo is completely invisible.
+                </p>
+              </div>
+            </div>
+          </section>
         </div>
       </div>
     </main>
