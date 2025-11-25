@@ -20,6 +20,8 @@ export default function Home() {
   const [fileName, setFileName] = useState('');
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [processedBlob, setProcessedBlob] = useState<Blob | null>(null);
+  const [showStats, setShowStats] = useState(false);
+  const [downloadCount, setDownloadCount] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Cleanup preview URL on unmount or change
@@ -29,6 +31,18 @@ export default function Home() {
       if (previewUrl) URL.revokeObjectURL(previewUrl);
     };
   }, [previewUrl]);
+
+  // Check for admin access and load stats
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('admin') === 'stats2024') {
+        setShowStats(true);
+      }
+      const stored = localStorage.getItem('fetchsub_downloads');
+      setDownloadCount(stored ? parseInt(stored) : 0);
+    }
+  }, []);
 
   const processBuffer = (buffer: ArrayBuffer) => {
     const modified = new Uint8Array(buffer);
@@ -210,6 +224,13 @@ export default function Home() {
       });
     }
 
+    // Increment local counter
+    if (typeof window !== 'undefined') {
+      const newCount = downloadCount + 1;
+      localStorage.setItem('fetchsub_downloads', newCount.toString());
+      setDownloadCount(newCount);
+    }
+
     const downloadUrl = URL.createObjectURL(processedBlob);
     const a = document.createElement('a');
     a.href = downloadUrl;
@@ -230,6 +251,24 @@ export default function Home() {
 
   return (
     <main className="min-h-screen flex flex-col items-center justify-center p-4 bg-[#FDFBF7]">
+      {showStats && (
+        <div className="fixed top-4 right-4 bg-white border-2 border-[#1C1917] rounded-lg p-4 shadow-lg z-50">
+          <div className="text-xs font-mono text-[#78716C] mb-1">ADMIN STATS</div>
+          <div className="text-2xl font-bold text-[#1C1917]">{downloadCount.toLocaleString()}</div>
+          <div className="text-xs text-[#78716C] mt-1">Total Downloads</div>
+          <button
+            onClick={() => {
+              if (confirm('Reset counter to 0?')) {
+                localStorage.setItem('fetchsub_downloads', '0');
+                setDownloadCount(0);
+              }
+            }}
+            className="mt-2 text-xs text-red-600 hover:underline"
+          >
+            Reset Counter
+          </button>
+        </div>
+      )}
       <div className="w-full max-w-2xl">
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-[#1C1917] mb-4 tracking-tight">
