@@ -89,6 +89,30 @@ export default function RootLayout({
             gtag('config', 'G-SN19DEDP9H');
           `}
         </Script>
+        <Script id="json-ld" type="application/ld+json">
+          {`
+            {
+              "@context": "https://schema.org",
+              "@type": "SoftwareApplication",
+              "name": "FetchSub",
+              "applicationCategory": "DesignApplication",
+              "operatingSystem": "Any",
+              "offers": {
+                "@type": "Offer",
+                "price": "0",
+                "priceCurrency": "USD"
+              },
+              "description": "The best free tool to remove Spline logo and watermarks from .splinecode files. Works instantly in your browser.",
+              "url": "https://fetchsub.com",
+              "image": "https://fetchsub.com/og-image.png",
+              "author": {
+                "@type": "Organization",
+                "name": "FetchSub"
+              },
+              "featureList": "Remove Spline Logo, Clean .splinecode files, Browser-based processing, Privacy-focused"
+            }
+          `}
+        </Script>
         {children}
       </body>
     </html>
