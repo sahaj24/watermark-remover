@@ -360,11 +360,69 @@ export default function Home() {
         <div className="mt-24 max-w-3xl mx-auto text-left space-y-12 pb-12">
           <section>
             <h2 className="text-2xl font-bold text-[#1C1917] mb-4">How to Remove Spline Watermark for Free?</h2>
-            <p className="text-[#57534E] leading-relaxed">
+            <p className="text-[#57534E] leading-relaxed mb-6">
               FetchSub is the easiest way to remove the Spline logo from your 3D scenes. 
               Simply upload your <code>.splinecode</code> file or paste the URL, and our tool will instantly process the file to hide the watermark. 
               It works by modifying the internal flags of the file without damaging your 3D model or animations.
             </p>
+            
+            <h3 className="text-xl font-semibold text-[#1C1917] mb-3">Step-by-Step Guide</h3>
+            <ol className="list-decimal pl-5 space-y-3 text-[#57534E] mb-8">
+              <li>
+                <strong>Export your scene:</strong> In Spline, go to Export and choose "Spline Code" (.splinecode).
+              </li>
+              <li>
+                <strong>Upload to FetchSub:</strong> Drag and drop your file into the box above, or paste the public URL.
+              </li>
+              <li>
+                <strong>Process automatically:</strong> Click "Remove Watermark". Our algorithm detects and neutralizes the logo flag.
+              </li>
+              <li>
+                <strong>Preview & Download:</strong> Check the live 3D preview to ensure the logo is gone, then download your clean file.
+              </li>
+            </ol>
+          </section>
+
+          <section>
+            <h2 className="text-2xl font-bold text-[#1C1917] mb-4">FetchSub vs. Other Methods</h2>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="border-b border-[#E7E5E4]">
+                    <th className="py-3 font-semibold text-[#1C1917]">Feature</th>
+                    <th className="py-3 font-semibold text-[#1C1917]">FetchSub</th>
+                    <th className="py-3 font-semibold text-[#78716C]">Manual Hex Editing</th>
+                    <th className="py-3 font-semibold text-[#78716C]">Spline Super</th>
+                  </tr>
+                </thead>
+                <tbody className="text-[#57534E] text-sm">
+                  <tr className="border-b border-[#E7E5E4]">
+                    <td className="py-3">Cost</td>
+                    <td className="py-3 font-medium text-green-600">Free</td>
+                    <td className="py-3">Free</td>
+                    <td className="py-3">$9/mo</td>
+                  </tr>
+                  <tr className="border-b border-[#E7E5E4]">
+                    <td className="py-3">Difficulty</td>
+                    <td className="py-3 font-medium text-green-600">One Click</td>
+                    <td className="py-3 text-red-500">Very Hard</td>
+                    <td className="py-3">Easy</td>
+                  </tr>
+                  <tr className="border-b border-[#E7E5E4]">
+                    <td className="py-3">Time Required</td>
+                    <td className="py-3 font-medium text-green-600">Instant</td>
+                    <td className="py-3">15-30 mins</td>
+                    <td className="py-3">Instant</td>
+                  </tr>
+                  <tr>
+                    <td className="py-3">Privacy</td>
+                    <td className="py-3 font-medium text-green-600">100% Local</td>
+                    <td className="py-3">Local</td>
+                    <td className="py-3">Cloud</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </section>
 
           <section>

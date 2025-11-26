@@ -20,6 +20,7 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://fetchsub.com'),
   title: "Spline Watermark Remover - Free & Online | FetchSub",
   description: "The best free tool to remove Spline logo and watermarks from .splinecode files. Works instantly in your browser. No signup, no upload, 100% private.",
   keywords: [
