@@ -41,11 +41,21 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_US",
     siteName: "FetchSub",
+    url: "https://fetchsub.com",
+    images: [
+      {
+        url: "https://fetchsub.com/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "FetchSub - Spline Watermark Remover",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "Spline Watermark Remover - Free & Online",
     description: "Remove Spline logo and watermarks from your 3D scenes instantly.",
+    images: ["https://fetchsub.com/og-image.png"],
   },
   icons: {
     icon: "/logo.svg",
