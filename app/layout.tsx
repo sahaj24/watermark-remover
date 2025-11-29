@@ -114,7 +114,20 @@ export default function RootLayout({
             }
           `}
         </Script>
-        {children}
+        
+        <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 py-4 bg-[#FDFBF7]/80 backdrop-blur-md border-b border-[#E7E5E4]">
+          <div className="flex items-center gap-2">
+            <a href="/" className="font-bold text-xl tracking-tight text-[#1C1917]">FetchSub</a>
+          </div>
+          <div className="flex gap-6 text-sm font-medium text-[#57534E]">
+            <a href="/" className="hover:text-[#1C1917] transition-colors">Spline Remover</a>
+            <a href="/camscanner" className="hover:text-[#1C1917] transition-colors">CamScanner Remover</a>
+          </div>
+        </nav>
+
+        <div className="pt-20">
+          {children}
+        </div>
       </body>
     </html>
   );
