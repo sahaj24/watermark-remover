@@ -229,7 +229,30 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center p-4 bg-[#FDFBF7]">
+    <main 
+      className="min-h-screen flex flex-col items-center justify-center p-4 bg-[#FDFBF7]"
+      onDragOver={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+      }}
+      onDragEnter={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+      }}
+      onDrop={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const files = Array.from(e.dataTransfer.files);
+        const file = files.find(f => f.name.endsWith('.splinecode'));
+        if (file && fileInputRef.current) {
+          const dt = new DataTransfer();
+          dt.items.add(file);
+          fileInputRef.current.files = dt.files;
+          setFileName(file.name);
+          setUrl('');
+        }
+      }}
+    >
       <div className="w-full max-w-2xl">
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-[#1C1917] mb-4 tracking-tight">

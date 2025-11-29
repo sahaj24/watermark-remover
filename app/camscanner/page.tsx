@@ -74,7 +74,31 @@ export default function CamScannerRemover() {
   };
 
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center p-4 bg-[#FDFBF7]">
+    <main 
+      className="min-h-screen flex flex-col items-center justify-center p-4 bg-[#FDFBF7]"
+      onDragOver={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+      }}
+      onDragEnter={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+      }}
+      onDrop={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const files = Array.from(e.dataTransfer.files);
+        const pdfFile = files.find(f => f.type === 'application/pdf');
+        if (pdfFile && fileInputRef.current) {
+          const dt = new DataTransfer();
+          dt.items.add(pdfFile);
+          fileInputRef.current.files = dt.files;
+          setFile(pdfFile);
+          setProcessedPdf(null);
+          setError('');
+        }
+      }}
+    >
       <div className="w-full max-w-2xl">
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-[#1C1917] mb-4 tracking-tight">
