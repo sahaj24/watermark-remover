@@ -62,7 +62,7 @@ export default function CamScannerRemover() {
   const downloadPdf = () => {
     if (!processedPdf || !file) return;
 
-    const blob = new Blob([processedPdf], { type: 'application/pdf' });
+    const blob = new Blob([processedPdf.buffer], { type: 'application/pdf' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
