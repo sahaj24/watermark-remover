@@ -137,6 +137,7 @@ export default function RootLayout({
             <a href="/" className="hover:text-[#1C1917] transition-colors">Spline Remover</a>
             <a href="/camscanner" className="hover:text-[#1C1917] transition-colors">CamScanner Remover</a>
             <a href="/safe-zone" className="hover:text-[#1C1917] transition-colors">Safe Zone Checker</a>
+            <a href="/exif-editor" className="hover:text-[#1C1917] transition-colors">Exif Editor</a>
           </div>
         </nav>
 
