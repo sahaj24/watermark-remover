@@ -27,6 +27,9 @@ export const metadata: Metadata = {
       },
     ],
   },
+  alternates: {
+    canonical: "https://fetchsub.com/safe-zone",
+  },
 };
 
 export default function SafeZoneLayout({

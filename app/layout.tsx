@@ -62,6 +62,9 @@ export const metadata: Metadata = {
     icon: "/logo.svg",
     apple: "/logo.svg",
   },
+  alternates: {
+    canonical: "https://fetchsub.com",
+  },
 };
 
 export default function RootLayout({
@@ -94,23 +97,34 @@ export default function RootLayout({
           {`
             {
               "@context": "https://schema.org",
-              "@type": "SoftwareApplication",
-              "name": "FetchSub",
-              "applicationCategory": "DesignApplication",
-              "operatingSystem": "Any",
-              "offers": {
-                "@type": "Offer",
-                "price": "0",
-                "priceCurrency": "USD"
-              },
-              "description": "The best free tool to remove Spline logo and watermarks from .splinecode files. Works instantly in your browser.",
-              "url": "https://fetchsub.com",
-              "image": "https://fetchsub.com/og-image.png",
-              "author": {
-                "@type": "Organization",
-                "name": "FetchSub"
-              },
-              "featureList": "Remove Spline Logo, Clean .splinecode files, Browser-based processing, Privacy-focused"
+              "@graph": [
+                {
+                  "@type": "Organization",
+                  "name": "FetchSub",
+                  "url": "https://fetchsub.com",
+                  "logo": "https://fetchsub.com/logo.svg",
+                  "sameAs": []
+                },
+                {
+                  "@type": "SoftwareApplication",
+                  "name": "Spline Watermark Remover",
+                  "applicationCategory": "DesignApplication",
+                  "operatingSystem": "Any",
+                  "offers": {
+                    "@type": "Offer",
+                    "price": "0",
+                    "priceCurrency": "USD"
+                  },
+                  "description": "The best free tool to remove Spline logo and watermarks from .splinecode files. Works instantly in your browser.",
+                  "url": "https://fetchsub.com",
+                  "image": "https://fetchsub.com/og-image.png",
+                  "author": {
+                    "@type": "Organization",
+                    "name": "FetchSub"
+                  },
+                  "featureList": "Remove Spline Logo, Clean .splinecode files, Browser-based processing, Privacy-focused"
+                }
+              ]
             }
           `}
         </Script>

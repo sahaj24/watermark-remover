@@ -28,6 +28,9 @@ export const metadata: Metadata = {
       },
     ],
   },
+  alternates: {
+    canonical: "https://fetchsub.com/camscanner",
+  },
 };
 
 export default function CamScannerLayout({
