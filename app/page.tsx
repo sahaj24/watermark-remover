@@ -272,6 +272,27 @@ export default function Home() {
             {/* File Upload */}
             <div 
               onClick={() => fileInputRef.current?.click()}
+              onDragOver={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
+              onDragEnter={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
+              onDrop={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const files = Array.from(e.dataTransfer.files);
+                const file = files.find(f => f.name.endsWith('.splinecode'));
+                if (file && fileInputRef.current) {
+                  const dt = new DataTransfer();
+                  dt.items.add(file);
+                  fileInputRef.current.files = dt.files;
+                  setFileName(file.name);
+                  setUrl('');
+                }
+              }}
               className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all ${
                 fileName 
                   ? 'border-[#1C1917] bg-[#F5F5F4]' 
@@ -292,7 +313,7 @@ export default function Home() {
                 {fileName ? (
                   <p className="text-[#1C1917] font-medium">{fileName}</p>
                 ) : (
-                  <p className="text-[#78716C]">Click to upload .splinecode file</p>
+                  <p className="text-[#78716C]">Click to upload or drag & drop .splinecode file</p>
                 )}
               </div>
             </div>

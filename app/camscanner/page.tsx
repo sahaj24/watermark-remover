@@ -93,6 +93,28 @@ export default function CamScannerRemover() {
             {/* File Upload */}
             <div 
               onClick={() => fileInputRef.current?.click()}
+              onDragOver={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
+              onDragEnter={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
+              onDrop={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const files = Array.from(e.dataTransfer.files);
+                const pdfFile = files.find(f => f.type === 'application/pdf');
+                if (pdfFile && fileInputRef.current) {
+                  const dt = new DataTransfer();
+                  dt.items.add(pdfFile);
+                  fileInputRef.current.files = dt.files;
+                  setFile(pdfFile);
+                  setProcessedPdf(null);
+                  setError('');
+                }
+              }}
               className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all ${
                 file 
                   ? 'border-[#1C1917] bg-[#F5F5F4]' 
@@ -113,7 +135,7 @@ export default function CamScannerRemover() {
                 {file ? (
                   <p className="text-[#1C1917] font-medium">{file.name}</p>
                 ) : (
-                  <p className="text-[#78716C]">Click to upload PDF file</p>
+                  <p className="text-[#78716C]">Click to upload or drag & drop PDF file</p>
                 )}
               </div>
             </div>
