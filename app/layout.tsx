@@ -122,6 +122,7 @@ export default function RootLayout({
           <div className="flex gap-6 text-sm font-medium text-[#57534E]">
             <a href="/" className="hover:text-[#1C1917] transition-colors">Spline Remover</a>
             <a href="/camscanner" className="hover:text-[#1C1917] transition-colors">CamScanner Remover</a>
+            <a href="/safe-zone" className="hover:text-[#1C1917] transition-colors">Safe Zone Checker</a>
           </div>
         </nav>
 
